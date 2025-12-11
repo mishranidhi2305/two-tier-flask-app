@@ -1,64 +1,35 @@
-@Library("Shared") _
-pipeline{
-    
-    agent { label "dev"};
-    
-    stages{
-        stage("Code Clone"){
-            steps{
-               script{
-                   clone("https://github.com/LondheShubham153/two-tier-flask-app.git", "master")
-               }
-            }
-        }
-        stage("Trivy File System Scan"){
-            steps{
-                script{
-                    trivy_fs()
-                }
-            }
-        }
-        stage("Build"){
-            steps{
-                sh "docker build -t two-tier-flask-app ."
-            }
-            
-        }
-        stage("Test"){
-            steps{
-                echo "Developer / Tester tests likh ke dega..."
-            }
-            
-        }
-        stage("Push to Docker Hub"){
-            steps{
-                script{
-                    docker_push("dockerHubCreds","two-tier-flask-app")
-                }  
-            }
-        }
-        stage("Deploy"){
-            steps{
-                sh "docker compose up -d --build flask-app"
-            }
-        }
+pipeline {
+    agent any
+
+    triggers {
+        githubPush()
     }
 
-post{
-        success{
-            script{
-                emailext from: 'mentor@trainwithshubham.com',
-                to: 'mentor@trainwithshubham.com',
-                body: 'Build success for Demo CICD App',
-                subject: 'Build success for Demo CICD App'
+    stages {
+        stage('Clone') {
+            steps {
+                git url: 'https://github.com/mishranidhi2305/two-tier-flask-app.git', credentialsId: 'git-creds'
             }
         }
-        failure{
-            script{
-                emailext from: 'mentor@trainwithshubham.com',
-                to: 'mentor@trainwithshubham.com',
-                body: 'Build Failed for Demo CICD App',
-                subject: 'Build Failed for Demo CICD App'
+
+        stage('Build') {
+            steps {
+                echo "Building Flask app..."
+                sh "echo Simulate build here"
+            }
+        }
+
+        stage('Test') {
+            steps {
+                echo "Running tests..."
+                sh "echo Simulate tests here"
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                echo "Deploying application..."
+                sh "echo Simulate deployment here"
             }
         }
     }

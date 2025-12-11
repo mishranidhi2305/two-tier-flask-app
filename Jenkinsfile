@@ -1,8 +1,8 @@
 pipeline {
     agent any
 
-    triggers {
-        githubPush()
+    environment {
+        DOCKER_IMAGE = "flask-app-demo:latest"
     }
 
     stages {
@@ -12,24 +12,29 @@ pipeline {
             }
         }
 
-        stage('Build') {
+        stage('Build Docker Image') {
             steps {
-                echo "Building Flask app..."
-                sh "echo Simulate build here"
+                script {
+                    // Build Docker image from cloned repo
+                    sh "docker build -t $DOCKER_IMAGE ."
+                }
+            }
+        }
+
+        stage('Run Docker Container') {
+            steps {
+                script {
+                    // Stop and remove any existing container
+                    sh "docker rm -f flask-app || true"
+                    // Run container
+                    sh "docker run -d --name flask-app -p 5000:5000 $DOCKER_IMAGE"
+                }
             }
         }
 
         stage('Test') {
             steps {
-                echo "Running tests..."
-                sh "echo Simulate tests here"
-            }
-        }
-
-        stage('Deploy') {
-            steps {
-                echo "Deploying application..."
-                sh "echo Simulate deployment here"
+                sh "curl -f http://localhost:5000 || echo 'App not responding yet'"
             }
         }
     }
